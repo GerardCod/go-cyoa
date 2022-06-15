@@ -1,5 +1,6 @@
 package cyoa
 
+// Story represents the content for the cyoa content
 type Story map[string]Chapter
 
 // Chapter represents a Chapter
