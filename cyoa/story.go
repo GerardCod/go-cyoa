@@ -11,6 +11,8 @@ import (
 
 var tpl *template.Template
 
+// Esta función inicializa los valores de algunas variables al momento de cargar
+// el módulo actual en tiempo de ejecución.
 func init() {
 	tpl = template.Must(template.New("").Parse(defaultHandlerImpl))
 }
@@ -90,18 +92,23 @@ var defaultHandlerImpl = `
 
 type HandlerOption func(h *handler)
 
+// WithTemplate es una opción funcional para establecer la plantilla
+// que mostrará los datos de la historia.
 func WithTemplate(t *template.Template) HandlerOption {
 	return func(h *handler) {
 		h.t = t
 	}
 }
 
+// WithPathFunc es una opción funcional para definir el procesamiento de
+// las peticiones.
 func WithPathFunc(fn func(r *http.Request) string) HandlerOption {
 	return func(h *handler) {
 		h.pathFn = fn
 	}
 }
 
+// NewHandler es una función para crear una variable de http.Handler
 func NewHandler(s Story, opts ...HandlerOption) http.Handler {
 	h := handler{s, tpl, defaultPathFn}
 
@@ -118,6 +125,7 @@ type handler struct {
 	pathFn func(r *http.Request) string
 }
 
+// defaultPathFn define la ruta por defecto para el funcionamiento del enrutador.
 func defaultPathFn(r *http.Request) string {
 	path := strings.TrimSpace(r.URL.Path)
 
@@ -128,6 +136,7 @@ func defaultPathFn(r *http.Request) string {
 	return path[1:]
 }
 
+// ServeHTTP procesa las peticiones del servidor.
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	path := h.pathFn(r)
 
@@ -147,6 +156,9 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// JsonStory realiza la conversión de un json a una variable de tipo Story.
+// Recibe un parámetro de tipo io.Reader para procesar los bytes del json.
+// Devuelve ya sea una variable de tipo Story o un error.
 func JsonStory(r io.Reader) (Story, error) {
 	var story Story
 
@@ -159,21 +171,23 @@ func JsonStory(r io.Reader) (Story, error) {
 	return story, nil
 }
 
-// Story represents the content for the cyoa content
+// Story es una colección de capítulos para la historia de la aplicación.
 type Story map[string]Chapter
 
-// Chapter represents a Chapter
+// Chapter es una struct que representa un capítulo de la historia.
 type Chapter struct {
 	Title      string   `json:"title,omitempty"`
 	Paragraphs []string `json:"story,omitempty"`
 	Options    []Option `json:"options,omitempty"`
 }
 
+// Option es uno de los caminos alternos para la historia de la aplicación.
 type Option struct {
 	Text    string `json:"text,omitempty"`
 	Chapter string `json:"arc,omitempty"`
 }
 
+// Demo
 type Demo struct {
 	Name string `json:"name,omitempty"`
 	Age  int    `json:"age,omitempty"`
